@@ -1,0 +1,215 @@
+<?php 
+	$this->load->view('includes/header'); 	
+	$today = new DateTime();
+	$today->modify('first day of this month');$first_day = date('Y-m-d');
+	$today->modify('last day of this month');$last_day = date("t",strtotime($today->format('Y-m-d')));
+	$monthArr = [
+	    'Apr-'.($start_year-1)=>'01-04-'.($start_year-1),
+	    'May-'.($start_year-1)=>'01-05-'.($start_year-1),
+	    'Jun-'.($start_year-1)=>'01-06-'.($start_year-1),
+	    'Jul-'.($start_year-1)=>'01-07-'.($start_year-1),
+	    'Aug-'.($start_year-1)=>'01-08-'.($start_year-1),
+	    'Sep-'.($start_year-1)=>'01-09-'.($start_year-1),
+	    'Oct-'.($start_year-1)=>'01-10-'.($start_year-1),
+	    'Nov-'.($start_year-1)=>'01-11-'.($start_year-1),
+	    'Dec-'.($start_year-1)=>'01-12-'.($start_year-1),
+	    'Jan-'.$start_year=>'01-01-'.$start_year,
+	    'Feb-'.$start_year=>'01-02-'.$start_year,
+	    'Mar-'.$start_year=>'01-03-'.$start_year,
+	    'Apr-'.$start_year=>'01-04-'.$start_year,
+	    'May-'.$start_year=>'01-05-'.$start_year,
+	    'Jun-'.$start_year=>'01-06-'.$start_year,
+	    'Jul-'.$start_year=>'01-07-'.$start_year,
+	    'Aug-'.$start_year=>'01-08-'.$start_year,
+	    'Sep-'.$start_year=>'01-09-'.$start_year,
+	    'Oct-'.$start_year=>'01-10-'.$start_year,
+	    'Nov-'.$start_year=>'01-11-'.$start_year,
+	    'Dec-'.$start_year=>'01-12-'.$start_year,
+	    'Jan-'.$end_year=>'01-01-'.$end_year,
+	    'Feb-'.$end_year=>'01-02-'.$end_year,
+	    'Mar-'.$end_year=>'01-03-'.$end_year
+    ];
+?>
+<div class="page-wrapper">
+    <div class="container-fluid bg-container">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-md-12 text-center">
+                                <h4 class="card-title">Monthly Attendance</h4>
+                            </div>
+                            <hr>
+							<div class="col-md-12">
+                                <div class="input-group">
+                                    <!--<select name="emp_type" id="emp_type" class="form-control single-select req " style="width:14%;margin-bottom:0px;">
+                                        <option value="All">All</option>
+                                        <option value="1">Permanent (Fix)</option>
+                                        <option value="2">Permanent (Hourly)</option>
+                                        <option value="3">Temporary</option>
+                                    </select>-->
+                                    <input type="hidden" name="emp_type" value="All">
+                                    <select name="report_type" id="report_type" class="form-control single-select" style="width:12%;margin-bottom:0px;">
+                                        <option value="1">Monthly</option>
+                                        <option value="2">Hourly</option>
+                                    </select>
+                                    <select name="dept_id" id="dept_id" class="form-control single-select req" style="width:20%;margin-bottom:0px;">
+                                        <option value="0">All Department</option>
+                                        <?php
+                                            foreach($deptRows as $row):
+                                                echo '<option value="'.$row->id.'" '.$selected.'>'.$row->name.'</option>';
+                                            endforeach;
+                                        ?>
+                                    </select>
+                                    <select name="biomatric_id" id="biomatric_id" class="form-control single-select req" style="width:26%;">
+										<?php
+										    if(in_array($this->userRole,[-1,1,7])){ echo '<option value="ALL">ALL</option>'; }
+											foreach($empList as $row):
+												if(!empty($row->biomatric_id)):
+												    $selected='';
+												    if(!in_array($this->userRole,[-1,1,7])){ $selected = ($this->loginId == $row->id)?'selected':'disabled'; }
+													echo '<option value="'.$row->emp_code.'" '.$selected.'>['.$row->emp_code.'] '.$row->emp_name.'</option>';
+												endif;
+											endforeach;
+										?>
+									</select>
+									<select name="month" id="month" class="form-control single-select" style="width:18%;margin-bottom:0px;">
+										<?php
+											foreach($monthArr as $key=>$value):
+												$selected = (date('m') == date('m',strtotime($value)))?"selected":"";
+												echo '<option value="'.$value.'" '.$selected.'>'.$key.'</option>';
+											endforeach;
+										?>
+									</select>
+									<button type="button" class="btn waves-effect waves-light btn-github float-right" datatip="View Report" flow="down" style="padding: 0.3rem 0px;border-radius:0px;width:8%;" onclick="getHourlyReport('view');"><i class="fa fa-eye"></i> View</button>
+									<button type="button" class="btn waves-effect waves-light btn-danger float-right" datatip="PDF V1" flow="down" style="padding: 0.3rem 0px;width:8%;border-top-left-radius:0px;border-bottom-left-radius:0px;" onclick="getHourlyReport('pdf');"><i class="fa fa-file-pdf"></i> PDF</a>
+									<button type="button" class="btn waves-effect waves-light btn-success float-right" datatip="EXCEL" flow="down" style="padding: 0.3rem 0px;width:8%;border-top-left-radius:0px;border-bottom-left-radius:0px;" onclick="getHourlyReport('excel');"><i class="fa fa-file-excel"></i> Excel</a>
+									<!--<button type="button" class="btn waves-effect waves-light btn-youtube float-right" datatip="PDF V2" flow="down" style="padding: 0.3rem 0px;width:8%;border-top-left-radius:0px;border-bottom-left-radius:0px;" onclick="printMonthlyAttendance('pdf');"><i class="fa fa-file-pdf"></i> PDF V2</button>
+									<button type="button" class="btn waves-effect waves-light btn-facebook float-right" datatip="EXCEL V2" flow="down" style="padding: 0.3rem 0px;width:8%;border-top-left-radius:0px;border-bottom-left-radius:0px;" onclick="printMonthlyAttendance('excel');"><i class="fa fa-file-excel"></i> Excel V2</button>-->
+								</div>
+                            </div>                     
+                        </div>                                         
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id='attendanceTable' class="table table-striped table-bordered">
+								<thead class="thead-info" id="theadData">
+									<tr>
+										<th>Emp Code</th><th>Employee</th>
+										<?php for($d=1;$d<=$last_day;$d++){echo '<th>'.$d.'</th>';} ?>
+										<th>Total</th>
+									</tr>
+								</thead>
+								<tbody id="tbodyData"></tbody>
+							</table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</div>
+<?php $this->load->view('includes/footer'); ?>
+<script src="<?php echo base_url();?>assets/js/custom/month-attendance.js?v=<?=time()?>"></script>
+
+<script>
+    $(document).ready(function(){
+	attendanceSummaryTable();
+	$('.jdt thead .clonTR').clone(true).insertAfter( '.jdt thead .clonTR' );
+    $('.jdt thead tr:eq(1) th').each( function (i) {
+        var title = $(this).text(); //placeholder="'+title+'"
+		$(this).html( '<input type="text" style="width:100%;"/>' );
+	});
+	$(document).on('click',".getDailyAttendance",function(){
+        var report_date = $("#report_date").val();
+		$.ajax({ 
+            type: "POST",   
+            url: base_url + 'reports/hrReport/getMismatchPunch',   
+            data: {report_date : report_date},
+			dataType:"json",
+        }).done(function(response){
+            $('#attendanceSummaryTable').dataTable().fnDestroy();
+			$('.attendance-summary').html(response.tbody);
+			
+			attendanceSummaryTable();
+        });
+    });
+	$(document).on('click',".manualAttendance",function(){
+		var functionName = $(this).data("function");
+		var modalId = $(this).data('modal_id');
+		var button = $(this).data('button');
+		var title = $(this).data('form_title');
+		var emp_id = $(this).data('empid');
+		var attendance_date = $(this).data('adate');
+		var formId = functionName.split('/')[0];
+		var fnsave = $(this).data("fnsave");if(fnsave == "" || fnsave == null){fnsave="save";}
+		$.ajax({ 
+			type: "GET",   
+			url: base_url + 'hr/manualAttendance/' + functionName,   
+			data: {}
+		}).done(function(response){
+			$("#"+modalId).modal({show:true});
+			$("#"+modalId+' .modal-title').html(title);
+			$("#"+modalId+' .modal-body').html("");
+			$("#"+modalId+' .modal-body').html(response);
+			$("#"+modalId+" .modal-body form").attr('id',formId);
+			$("#"+modalId+" .modal-footer .btn-save").attr('onclick',"storeWithController('"+formId+"','"+fnsave+"','hr/manualAttendance/');");
+			if(button == "close"){
+				$("#"+modalId+" .modal-footer .btn-close").show();
+				$("#"+modalId+" .modal-footer .btn-save").hide();
+			}else if(button == "save"){
+				$("#"+modalId+" .modal-footer .btn-close").hide();
+				$("#"+modalId+" .modal-footer .btn-save").show();
+			}else{
+				$("#"+modalId+" .modal-footer .btn-close").show();
+				$("#"+modalId+" .modal-footer .btn-save").show();
+			}
+			$('#emp_id').val(emp_id);
+			$('#attendance_date').val(attendance_date);
+			$(".single-select").comboSelect();
+			$("#processDiv").hide();
+			$("#"+modalId+" .scrollable").perfectScrollbar({suppressScrollX: true});
+			setTimeout(function(){ initMultiSelect();setPlaceHolder(); }, 5);
+		});
+	});
+});
+function attendanceSummaryTable()
+{
+	var attendanceSummaryTable = $('#attendanceSummaryTable').DataTable( 
+	{
+		responsive: true,
+		//'stateSave':true,
+		"autoWidth" : false,
+		order:[],
+		"columnDefs": 	[
+							{ type: 'natural', targets: 0 },
+							{ orderable: false, targets: "_all" }, 
+							{ className: "text-left", targets: [0,1] }, 
+							{ className: "text-center", "targets": "_all" } 
+						],
+		pageLength:25,
+		language: { search: "" },
+		lengthMenu: [
+            [ 10, 25, 50, 100, -1 ],[ '10 rows', '25 rows', '50 rows', '100 rows', 'Show all' ]
+        ],
+		dom: "<'row'<'col-sm-7'B><'col-sm-5'f>>" +"<'row'<'col-sm-12't>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+		buttons: [ 'pageLength', 'excel', {text: 'Refresh',action: function ( e, dt, node, config ) {loadAttendanceSheet();}}]
+	});
+	attendanceSummaryTable.buttons().container().appendTo( '#attendanceSummaryTable_wrapper toolbar' );
+	$('#attendanceSummaryTable_filter .form-control-sm').css("width","97%");
+	$('#attendanceSummaryTable_filter .form-control-sm').attr("placeholder","Search.....");
+	$('.dataTables_filter').css("text-align","left");
+	$('#attendanceSummaryTable_filter label').css("display","block");
+	$('.btn-group>.btn:first-child').css("border-top-right-radius","0");
+	$('.btn-group>.btn:first-child').css("border-bottom-right-radius","0");
+
+	//Datatable Column Filter
+    $('.jdt thead tr:eq(1) th').each( function (i) {
+		$( 'input', this ).on( 'keyup change', function () {
+			if ( attendanceSummaryTable.column(i).search() !== this.value ) {attendanceSummaryTable.column(i).search( this.value ).draw();}
+		});
+	} );
+	return attendanceSummaryTable;
+}
+</script>
