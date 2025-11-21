@@ -577,15 +577,23 @@ class ProductionReportModel extends MasterModel
         $queryData['leftJoin']['item_master as mc'] = "mc.id = okt.machine_id";
         $queryData['leftJoin']['rejection_comment'] = "rejection_comment.id = job_transaction.rr_reason";
         $queryData['leftJoin']['process_master as rrStage'] = "job_transaction.rr_stage = rrStage.id";
-        $queryData['leftJoin']['party_master'] = "rejection_comment.id = rej_rw_management.rr_by";
+        $queryData['leftJoin']['party_master'] = "party_master.id = rej_rw_management.rr_by";
 
         $queryData['where']['job_transaction.entry_type'] = 1;
         $queryData['where']['job_transaction.entry_date >= '] = $data['from_date'];
         $queryData['where']['job_transaction.entry_date <= '] = $data['to_date'];
-	
-		
+			
 		if (!empty($data['item_id'])) {
 			$queryData['where_in']['job_card.product_id'] = $data['item_id'];
+		}
+
+		if(!empty($data['rejection_from'])){
+			if($data['rejection_from'] == 1){
+				$queryData['having'][] = 'vendor_name IS NULL';
+			}
+			else if($data['rejection_from'] == 2){
+				$queryData['having'][] = 'vendor_name IS NOT NULL';
+			}
 		}
 		
 		return $this->rows($queryData);

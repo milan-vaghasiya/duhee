@@ -6,10 +6,18 @@
                 <div class="card">
                     <div class="card-header">
 						<div class="row">
-                            <div class="col-md-4 form-group">
+                            <div class="col-md-3 form-group">
                                 <h4 class="card-title pageHeader"><?=$pageHeader?></h4>
                             </div>
-                            <div class="col-md-3 form-group">
+							<div class="col-md-2 form-group">
+                                <select name="rejection_from" id="rejection_from" class="form-control single-select">
+									<option value="">All</option>
+									<option value="1">IN HOUSE</option>
+									<option value="2">VENDOR</option>
+								</select>
+                            </div>  
+
+                            <div class="col-md-2 form-group">
                                 <select name="itemSelect" id="itemSelect" data-input_id="item_id" class="form-control jp_multiselect_all" multiple="multiple">
                                     
                                     <?php
@@ -111,7 +119,8 @@ $(document).ready(function(){
         var item_id = $('#itemSelect').val();
 		var from_date = $('#from_date').val();
 		var to_date = $('#to_date').val();
-		console.log(item_id);
+		var rejection_from = $('#rejection_from').val();
+
 		if(item_id == ""){$(".item_id").html("Part is required.");valid=0;}
 		if(from_date == ""){$(".fromDate").html("From Date is required.");valid=0;}
 		if(to_date == ""){$(".toDate").html("To Date is required.");valid=0;}
@@ -119,7 +128,7 @@ $(document).ready(function(){
 		{
             $.ajax({
                 url: base_url + controller + '/getRejectionMonitoring',
-                data: {item_id:item_id,from_date:from_date, to_date:to_date},
+                data: {item_id:item_id,from_date:from_date, to_date:to_date, rejection_from:rejection_from},
 				type: "POST",
 				dataType:'json',
 				success:function(data){
