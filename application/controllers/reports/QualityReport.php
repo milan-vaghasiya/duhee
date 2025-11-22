@@ -204,6 +204,9 @@ class QualityReport extends MY_Controller
 		if(!empty($errorMessage)):
 			$this->printJson(['status'=>0,'message'=>$errorMessage]);
 		else:
+			$itemDataList = $this->item->getItemList(1);
+			$data['item_id'] = array_column($itemDataList,'id');
+
  			$rejectionData = $this->qualityReports->getMonthlyRejection($data);
 			$thead = ''; $tbody = ''; $tfoot = ''; $i = 1; $prodPer = 0; $rejPer = 0; $totalQty = 0; $totalRejQty = 0;
 			
