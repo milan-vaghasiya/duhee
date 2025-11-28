@@ -195,7 +195,7 @@ class QualityReport extends MY_Controller
         $this->load->view($this->monthly_rejection,$this->data);
 	}
 
-    public function getMonthlyRejection(){
+	public function getMonthlyRejection(){
 		$data = $this->input->post();
 		$errorMessage = array();
 		if($data['to_date'] < $data['from_date'])
@@ -229,17 +229,17 @@ class QualityReport extends MY_Controller
 			
 			if (!empty($rejectionData)) :
 			 	foreach ($rejectionData as $row) :
-					if($row->rejection_qty != 0):
-						$productionQty = ($row->rejection_qty + $row->prod_qty + $row->rework_qty + $row->hold_qty);
-						$rejPer = ($row->prod_qty != 0 && $row->rejection_qty != 0) ? (($row->rejection_qty * 100) / $productionQty) : 0;
+					
+						$productionQty = ($row->ok_qty + $row->opr_cft_qty);
+						$rejPer = ($productionQty > 0 && $row->rejection_qty > 0) ? (($row->rejection_qty * 100) / $productionQty) : 0;
 						$prodPer = (100 - $rejPer);
 						$tbody .= '<tr>
 							<td>' . $i++ . '</td>
-							<td>' . (!empty($row->item_code) ? '['.$row->item_code.'] '.$row->item_name : $row->item_name) . '</td>';
+							<td>' . $row->product_id.(!empty($row->item_code) ? '['.$row->item_code.'] '.$row->item_name : $row->item_name) . '</td>';
 						if($data['type'] == 0){
 							$tbody .= '<td>' . (!empty($row->emp_code) ? '['.$row->emp_code.'] '.$row->emp_name : $row->emp_name) . '</td>';
 						}else{							
-							$tbody .= '<td>' . (!empty($row->machine_code) ? '['.$row->machine_code.'] '.$row->machine_name : $row->machine_name) . '</td>';
+							$tbody .= '<td>'.$row->machine_id . (!empty($row->machine_code) ? '['.$row->machine_code.'] '.$row->machine_name : $row->machine_name) . '</td>';
 						}
 						$tbody .= '<td> '. $productionQty .' </td>
 							<td> '. $row->rejection_qty .' </td>
@@ -248,7 +248,6 @@ class QualityReport extends MY_Controller
 						$tbody.='</tr>';
 						$totalQty += $productionQty;
 						$totalRejQty += $row->rejection_qty;
-					endif;
 			 	endforeach;
 			endif;
 			$tfoot = '<tr><th colspan="3" class="text-right">Total</th><th>'.sprintf("%.2f", $totalQty).'</th><th>'.sprintf("%.2f", $totalRejQty).'</th><th></th><<th></th>/tr>';

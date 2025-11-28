@@ -88,7 +88,7 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 define('FIREBASE_API_KEY','AAAA9w9FdMc:APA91bHWVKZg1rf8BGcr-UDOPR2HrJdMqW4U9GGSNmz7Td6fv1D1NTEdsil06syFnH_0ld7AjyG6FsKrd-yDlK-671XKKUDlXR-0Pf-JEuDZsMYC82a6d16hvXtSOkKRUKSAUvyg_gMz');
 
 define('HOST_NAME','localhost');
-if($_SERVER['HTTP_HOST'] == 'localhost' OR $_SERVER['HTTP_HOST'] == '192.168.1.64')
+if($_SERVER['HTTP_HOST'] == 'localhost' OR $_SERVER['HTTP_HOST'] == '192.168.1.24')
 {
 	define('USER_NAME','root');
 	define('PASSWORD','');

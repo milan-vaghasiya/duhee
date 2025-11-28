@@ -589,10 +589,11 @@ class ProductionReportModel extends MasterModel
 
 		if(!empty($data['rejection_from'])){
 			if($data['rejection_from'] == 1){
-				$queryData['having'][] = 'vendor_name IS NULL';
+				$queryData['where']['rej_rw_management.rr_by'] = 0;
+				
 			}
 			else if($data['rejection_from'] == 2){
-				$queryData['having'][] = 'vendor_name IS NOT NULL';
+				$queryData['where']['rej_rw_management.rr_by > '] = 0;
 			}
 		}
 		

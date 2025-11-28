@@ -238,6 +238,13 @@ class OutChallan extends MY_Controller{
 /* Created By :- Sweta @24-07-2023 */
     function out_challan_print($id){
 		$challanData = $this->outChallan->challanTransRow($id);
+		$pack_no = "'".implode("','",explode(",",$challanData->batch_no))."'";
+		$packData = $this->outChallan->getPackingIds(['trans_number'=>$pack_no]);
+		$batchData = $this->outChallan->getDuheeBatch(['packing_id'=>$packData->pack_ids]);
+		$job_card_ids = array_column($batchData,"job_card_id");
+		$jobData = $this->jobcard->getJobcardList("",$job_card_ids);
+		$duheeBatch = ((!empty($jobData))?implode(",",array_unique(array_column($jobData,'wo_no'))):'');
+		// print_r($duheeBatch);exit;
 		$companyData = $this->db->where('id', 1)->get('company_info')->row();
 		$response = "";
 		$logo = base_url('assets/images/logo.png');
@@ -286,7 +293,7 @@ class OutChallan extends MY_Controller{
 							<td class="text-left" style="width:40%;vertical-align:top;">
 								<b>2. Identification marks & number if any: <br></b>
 								<b>Part Code: </b>'.$challanData->item_code.'<br/>
-								<b>Lot No./Date: </b>'.$challanData->batch_no.'<br/>
+								<b>Lot No./Date: </b>'.$duheeBatch.'<br/>
 								<b>Grade: </b>'.$challanData->material_grade.'<br/>
 								<b>Heat No.:</b>'.$challanData->batch_no.'<br/>
 								<b>Bar Dia:</b><br/>
@@ -394,7 +401,7 @@ class OutChallan extends MY_Controller{
 		</table>';
 
 		$pdfData = $originalCopy;
-
+		print_r($pdfData);exit;
 		$mpdf = $this->m_pdf->load();
 		$pdfFileName = 'DC-REG-' . $id . '.pdf';
 		$stylesheet = file_get_contents(base_url('assets/css/pdf_style.css'));

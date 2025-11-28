@@ -236,5 +236,23 @@ class OutChallanModel extends MasterModel{
             $this->db->trans_rollback();
         }
     }
+
+    public function getPackingIds($postData){
+        $queryData['tableName'] = 'packing_master';
+        $queryData['select'] = 'GROUP_CONCAT(packing_master.id) As pack_ids';
+        $queryData['where_in']['packing_master.trans_number'] = $postData['trans_number'];
+        $result = $this->row($queryData);
+        return $result;
+    }
+    public function getDuheeBatch($postData){
+        $queryData['tableName'] = 'stock_transaction';
+        $queryData['select'] = '(SELECT job_card_id FROM job_heat_trans WHERE is_delete = 0 AND job_heat_trans.batch_no = stock_transaction.batch_no GROUP BY job_card_id) AS job_card_id';
+
+        $queryData['where']['stock_transaction.ref_type'] = 36;
+        $queryData['where_in']['stock_transaction.ref_id'] = $postData['packing_id'];
+        $queryData['where']['stock_transaction.trans_type'] = 2;
+        $queryData['where']['stock_transaction.location_id'] = $this->PACK_STORE->id;
+        return $this->rows($queryData);
+    }
 }
 ?>

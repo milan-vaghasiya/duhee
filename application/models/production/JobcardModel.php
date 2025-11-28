@@ -493,7 +493,7 @@ class JobcardModel extends MasterModel
         return $this->row($data);
     }
 
-    public function getJobcardList($order_status = array())
+    public function getJobcardList($order_status = array(),$ids = "")
     {
         $data['tableName'] = $this->jobCard;
         $data['select'] = 'job_card.*,item_master.item_code,item_master.item_name';
@@ -501,8 +501,13 @@ class JobcardModel extends MasterModel
         if (!empty($order_status)) {
             $data['where_in']['job_card.order_status'] = $order_status;
         }
-        $data['where']['job_card.job_date >= '] = $this->startYearDate;
-        $data['where']['job_card.job_date <= '] = $this->endYearDate;
+        if(!empty($ids)){
+                $data['where_in']['job_card.id'] = $ids;
+        }else{
+            $data['where']['job_card.job_date >= '] = $this->startYearDate;
+            $data['where']['job_card.job_date <= '] = $this->endYearDate;
+        }
+        
         return $this->rows($data);
     }
 

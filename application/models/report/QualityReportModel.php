@@ -161,60 +161,33 @@ class QualityReportModel extends MasterModel
     
     
     public function getMonthlyRejection($data = array()){
-        $queryData = array();
-        $queryData['tableName'] = "job_transaction";
-        $queryData['select'] = "job_transaction.*,job_transaction.qty as prod_qty,SUM(CASE WHEN rej_rw_management.operation_type = 1 THEN rej_rw_management.qty ELSE 0 END) as rejection_qty,item_master.item_code,item_master.item_name,employee_master.emp_name,mc.item_name as machine_name,mc.item_code as machine_code,party_master.party_name as vendor_name, SUM(CASE WHEN rej_rw_management.operation_type = 2 THEN rej_rw_management.qty ELSE 0 END) as rework_qty, SUM(CASE WHEN rej_rw_management.operation_type = 3 THEN rej_rw_management.qty ELSE 0 END) as hold_qty,rej_rw_management.id as rid";
+		$data['tableName'] = $this->rej_rw_management;
+        $data['select'] = "rej_rw_management.*, item_master.item_code, item_master.item_name, machine.item_code as machine_code, machine.item_name as machine_name, employee_master.emp_code, employee_master.emp_name, SUM(job_transaction.qty) as ok_qty,SUM(rej_rw_management.qty) AS rejection_qty";
 
-        $queryData['leftJoin']['rej_rw_management'] = "rej_rw_management.id = job_transaction.rej_rw_manag_id";
-        $queryData['leftJoin']['item_master'] = "item_master.id = job_transaction.product_id";
-        $queryData['leftJoin']['job_card'] = "job_card.id = job_transaction.job_card_id";
-        $queryData['leftJoin']['job_transaction as okt'] = "job_transaction.ref_id = okt.id";
-        $queryData['leftJoin']['employee_master'] = "job_transaction.operator_id = employee_master.id";
-        $queryData['leftJoin']['item_master as mc'] = "mc.id = okt.machine_id";
-        $queryData['leftJoin']['party_master'] = "party_master.id = rej_rw_management.rr_by";
+        $data['select'] .= ',SUM(opr_cft.opr_cft_qty) AS opr_cft_qty,job_transaction.machine_id,job_transaction.product_id';
 
-        $queryData['where']['job_transaction.entry_type'] = 1;
-        $queryData['where']['job_transaction.entry_date >= '] = $data['from_date'];
-        $queryData['where']['job_transaction.entry_date <= '] = $data['to_date'];
-			
-		if (!empty($data['item_id'])) {
-			$queryData['where_in']['job_card.product_id'] = $data['item_id'];
-		}
-    
-        if($data['type'] == 0){
-            $queryData['where']['job_transaction.operator_id > '] = 0;
+        $data['join']['job_transaction'] = "job_transaction.id = rej_rw_management.job_trans_id";
+		$data['leftJoin']['job_card'] = "job_card.id = job_transaction.job_card_id";
+        $data['leftJoin']['item_master'] = "item_master.id = job_transaction.product_id";
+        $data['leftJoin']['item_master machine'] = "machine.id = job_transaction.machine_id";
+        $data['leftJoin']['employee_master'] = "employee_master.id = job_transaction.operator_id";
+        $data['leftJoin']['(SELECT SUM(qty) AS opr_cft_qty ,job_trans_id FROM rej_rw_management WHERE entry_type = 1  AND is_delete = 0 GROUP BY job_trans_id) opr_cft'] = 'opr_cft.job_trans_id = rej_rw_management.job_trans_id';
+
+        $data['where']['rej_rw_management.entry_type'] = 3;
+        $data['where']['rej_rw_management.operation_type'] = 1;
+		$data['customWhere'][] = "rej_rw_management.entry_date BETWEEN '" . $data['from_date'] . "' AND '" . $data['to_date'] . "'";
+
+		if(!empty($data['machine_id']) && $data['machine_id'] != "All"){$data['where']['job_transaction.machine_id'] = $data['machine_id'];}
+		if(!empty($data['emp_id']) && $data['emp_id'] != "All"){$data['where']['job_transaction.operator_id'] = $data['emp_id'];}
+
+		if($data['type'] == 0){
+            $data['where']['job_transaction.operator_id >'] = 0;
+			$data['group_by'][] = "job_transaction.product_id,job_transaction.operator_id";
 		}else{
-            $queryData['where']['job_transaction.machine_id > '] = 0;
+            $data['where']['job_transaction.machine_id >'] = 0;
+			$data['group_by'][] = "job_transaction.product_id,job_transaction.machine_id";
 		}
-
-        $queryData['having'][] = 'vendor_name IS NULL';
-        $queryData['group_by'][] = "job_transaction.id";
-        
-        return $this->rows($queryData);
-
-		// $data['tableName'] = $this->rej_rw_management;
-        // $data['select'] = "rej_rw_management.*, item_master.item_code, item_master.item_name, machine.item_code as machine_code, machine.item_name as machine_name, employee_master.emp_code, employee_master.emp_name, job_transaction.qty as prod_qty, SUM(CASE WHEN rej_rw_management.operation_type = 1 THEN rej_rw_management.qty ELSE 0 END) as rejection_qty, SUM(CASE WHEN rej_rw_management.operation_type = 2 THEN rej_rw_management.qty ELSE 0 END) as rework_qty, SUM(CASE WHEN rej_rw_management.operation_type = 3 THEN rej_rw_management.qty ELSE 0 END) as hold_qty,rej_rw_management.id as rid";
-
-        // $data['join']['job_transaction'] = "job_transaction.id = rej_rw_management.job_trans_id";
-		// $data['leftJoin']['job_card'] = "job_card.id = job_transaction.job_card_id";
-        // $data['leftJoin']['item_master'] = "item_master.id = job_transaction.product_id";
-        // $data['leftJoin']['item_master machine'] = "machine.id = job_transaction.machine_id";
-        // $data['leftJoin']['employee_master'] = "employee_master.id = job_transaction.operator_id";
-        // // $data['leftJoin']['rej_rw_management rrm'] = "rrm.id = rej_rw_management.id";
-
-        // $data['where']['rej_rw_management.ref_id'] = 0;
-		// $data['customWhere'][] = "rej_rw_management.entry_date BETWEEN '" . $data['from_date'] . "' AND '" . $data['to_date'] . "'";
-
-        // // if(!empty($data['item_id']) && $data['item_id'] != "All"){$data['where']['job_card.product_id'] = $data['item_id'];}
-		// if(!empty($data['machine_id']) && $data['machine_id'] != "All"){$data['where']['job_transaction.machine_id'] = $data['machine_id'];}
-		// if(!empty($data['emp_id']) && $data['emp_id'] != "All"){$data['where']['job_transaction.operator_id'] = $data['emp_id'];}
-
-		// if($data['type'] == 0){
-		// 	$data['group_by'][] = "job_transaction.operator_id";
-		// }else{
-		// 	$data['group_by'][] = "job_transaction.machine_id";
-		// }
-        // return $this->rows($data);
+        return $this->rows($data);
 	}
 }
 ?>
