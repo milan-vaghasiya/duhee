@@ -159,8 +159,33 @@ class QualityReportModel extends MasterModel
 		return $this->rows($data);
     }
     
-    
-    public function getMonthlyRejection($data = array()){
+    public function getMonthlyRejectionOld($data = array()){
+		$data['tableName'] = $this->rej_rw_management;
+        $data['select'] = "rej_rw_management.*, item_master.item_code, item_master.item_name, machine.item_code as machine_code, machine.item_name as machine_name, employee_master.emp_code, employee_master.emp_name, job_transaction.qty as prod_qty, SUM(CASE WHEN rrm.operation_type = 1 THEN rrm.qty ELSE 0 END) as rejection_qty, SUM(CASE WHEN rrm.operation_type = 2 THEN rrm.qty ELSE 0 END) as rework_qty, SUM(CASE WHEN rrm.operation_type = 3 THEN rrm.qty ELSE 0 END) as hold_qty";
+
+        $data['join']['job_transaction'] = "job_transaction.id = rej_rw_management.job_trans_id";
+		$data['leftJoin']['job_card'] = "job_card.id = job_transaction.job_card_id";
+        $data['leftJoin']['item_master'] = "item_master.id = job_transaction.product_id";
+        $data['leftJoin']['item_master machine'] = "machine.id = job_transaction.machine_id";
+        $data['leftJoin']['employee_master'] = "employee_master.id = job_transaction.operator_id";
+        $data['leftJoin']['rej_rw_management rrm'] = "rrm.id = rej_rw_management.id";
+
+        $data['where']['rej_rw_management.ref_id'] = 0;
+		$data['customWhere'][] = "rej_rw_management.entry_date BETWEEN '" . $data['from_date'] . "' AND '" . $data['to_date'] . "'";
+
+        if(!empty($data['item_id']) && $data['item_id'] != "All"){$data['where']['job_card.product_id'] = $data['item_id'];}
+		if(!empty($data['machine_id']) && $data['machine_id'] != "All"){$data['where']['job_transaction.machine_id'] = $data['machine_id'];}
+		if(!empty($data['emp_id']) && $data['emp_id'] != "All"){$data['where']['job_transaction.operator_id'] = $data['emp_id'];}
+
+		if($data['type'] == 0){
+			$data['group_by'][] = "job_transaction.operator_id";
+		}else{
+			$data['group_by'][] = "job_transaction.machine_id";
+		}
+        return $this->rows($data);
+	}
+	
+	public function getMonthlyRejection($data = array()){
 		$data['tableName'] = $this->rej_rw_management;
         $data['select'] = "rej_rw_management.*, item_master.item_code, item_master.item_name, machine.item_code as machine_code, machine.item_name as machine_name, employee_master.emp_code, employee_master.emp_name, SUM(job_transaction.qty) as ok_qty,SUM(rej_rw_management.qty) AS rejection_qty";
 

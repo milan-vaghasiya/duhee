@@ -1249,12 +1249,12 @@ class JobcardModel extends MasterModel
     {
         $queryData = array();
         $queryData['tableName'] = $this->stockTrans;
-        $queryData['select'] = "SUM(CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 21 THEN stock_transaction.qty ELSE 0 END) as issue_qty,SUM(CASE WHEN stock_transaction.trans_type = 2  AND stock_transaction.ref_type = 21 THEN stock_transaction.qty ELSE 0 END)as used_qty,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 20 THEN stock_transaction.ref_batch  END SEPARATOR ', ') as batch_no,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 20 THEN mir_transaction.mill_heat_no  END SEPARATOR ', ') as heat_no,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 20 THEN party_master.party_name  END SEPARATOR ', ') as party_name";
+        $queryData['select'] = "SUM(CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 21 THEN stock_transaction.qty ELSE 0 END) as issue_qty,SUM(CASE WHEN stock_transaction.trans_type = 2  AND stock_transaction.ref_type = 21 THEN stock_transaction.qty ELSE 0 END)as used_qty,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 20 THEN stock_transaction.ref_batch  END SEPARATOR ', ') as batch_no,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 20 THEN mir_transaction.mill_heat_no  END SEPARATOR ', ') as heat_no,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 20 THEN party_master.party_name  END SEPARATOR ', ') as party_name,group_concat(DISTINCT CASE WHEN stock_transaction.trans_type = 1 AND stock_transaction.ref_type = 21 THEN stock_transaction.item_id  END) AS bom_item";
         $queryData['leftJoin']['mir_transaction'] = "mir_transaction.batch_no = stock_transaction.ref_batch AND mir_transaction.item_id = stock_transaction.item_id";
         $queryData['leftJoin']['mir'] = "mir_transaction.mir_id = mir.id";
         $queryData['leftJoin']['party_master'] = "party_master.id = mir.party_id";
         $queryData['where']['stock_transaction.ref_id'] = $job_card_id;
-        $queryData['where']['stock_transaction.item_id'] = $item_id;
+        if(!empty($item_id)){$queryData['where']['stock_transaction.item_id'] = $item_id;}
         $result = $this->row($queryData);
         return $result;
     }

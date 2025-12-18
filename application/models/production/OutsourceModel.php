@@ -95,10 +95,10 @@ class OutsourceModel extends MasterModel
     {
         $data['select'] = "MAX(trans_no) as transNo";
         $data['tableName'] = $this->outsourceChallan;
-        $data['where']['trans_date >= '] = $this->startYearDate;
+        $data['where']['trans_date >= '] = '2025-12-01';//$this->startYearDate;
         $data['where']['trans_date <= '] = $this->endYearDate;
         $transNo = $this->specificRow($data)->transNo;
-        $nextChallanNo = (!empty($transNo)) ? ($transNo + 1) : 1;
+        $nextChallanNo = (!empty($transNo)) ? ($transNo + 1) : 1457;
         return $nextChallanNo;
     }
 
@@ -166,6 +166,7 @@ class OutsourceModel extends MasterModel
                 $this->db->trans_commit();
                 return $result;
             endif;
+            
         } catch (\Exception $e) {
             $this->db->trans_rollback();
             return ['status' => 2, 'message' => "somthing is wrong. Error : " . $e->getMessage()];
@@ -222,6 +223,7 @@ class OutsourceModel extends MasterModel
         $queryData['select'] = "job_transaction.*,job_card.job_no,job_card.job_prefix,job_card.job_number,item_master.full_name,item_master.wt_pcs,process_master.process_name,item_category.category_name,item_master.item_code,job_card.wo_no,job_card.job_date,im.material_grade,job_bom.ref_item_id,im.item_name as dia";
         $queryData['leftJoin']['job_bom'] = "job_bom.job_card_id = job_transaction.job_card_id AND job_bom.item_id = job_transaction.product_id AND job_bom.is_delete = 0";
 		$queryData['leftJoin']['item_master im'] = "im.id = job_bom.ref_item_id";
+        $queryData['leftJoin']['item_category'] = "item_category.id = im.category_id";
         $queryData['leftJoin']['job_card'] = "job_transaction.job_card_id = job_card.id";
         $queryData['leftJoin']['item_master'] = "job_transaction.product_id = item_master.id";
         $queryData['leftJoin']['process_master'] = "job_transaction.process_id = process_master.id";

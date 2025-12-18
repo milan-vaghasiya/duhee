@@ -235,16 +235,29 @@ class OutChallan extends MY_Controller{
 	}
 	
 	/* Created By :- Sweta @24-07-2023 */
-/* Created By :- Sweta @24-07-2023 */
     function out_challan_print($id){
 		$challanData = $this->outChallan->challanTransRow($id);
-		$pack_no = "'".implode("','",explode(",",$challanData->batch_no))."'";
-		$packData = $this->outChallan->getPackingIds(['trans_number'=>$pack_no]);
-		$batchData = $this->outChallan->getDuheeBatch(['packing_id'=>$packData->pack_ids]);
-		$job_card_ids = array_column($batchData,"job_card_id");
-		$jobData = $this->jobcard->getJobcardList("",$job_card_ids);
-		$duheeBatch = ((!empty($jobData))?implode(",",array_unique(array_column($jobData,'wo_no'))):'');
-		// print_r($duheeBatch);exit;
+		$lot_no = '';$heat_no=''; $rm_name = "";
+		if(!empty($challanData->batch_no)){
+		    $pack_no = "'".implode("','",explode(",",$challanData->batch_no))."'";
+    		$packData = $this->packings->getPackingIds(['trans_number'=>$pack_no]);
+    		if(!empty($packData->pack_ids)){
+    		    
+        		$batchData = $this->outChallan->getDuheeBatch(['packing_id'=>$packData->pack_ids]);
+        		$job_card_ids = array_column($batchData,"job_card_id");
+        		
+		        $jobData = $this->jobcard->getJobcardList("",$job_card_ids);
+        		$lot_no = ((!empty($jobData))?implode(",",array_unique(array_column($jobData,'wo_no'))):'');
+        		
+        		$materialData = $this->jobcard->getIssueMaterialDetail(implode(",",$job_card_ids),"");
+		        $heat_no = $materialData->heat_no;
+		        
+		        $rmData = $this->item->getItemDetail(['id'=>$materialData->bom_item]);
+		        $rm_name = implode(",",array_column($rmData,'item_name'));
+    		}
+		    
+		}
+		
 		$companyData = $this->db->where('id', 1)->get('company_info')->row();
 		$response = "";
 		$logo = base_url('assets/images/logo.png');
@@ -268,10 +281,16 @@ class OutChallan extends MY_Controller{
 		$header = '<table class="table" style="border-bottom:1px solid #036aae;">
 						<tr>
 							<td style="width:15%;"><img src="' . $logo . '" style="height:60px;"></td>
-							<td class="org_title text-uppercase text-center" style="font-size:1.3rem;width:85%">IN OUT CHALLAN</td>
+							<td class="org_title text-uppercase text-center" style="font-size:1.3rem;width:70%">IN OUT CHALLAN</td>
+							<td style="width:15%;"></td>
 						</tr>
 					</table>';
-		$pdfData = '<table class="vendor_challan_table" style="margin-top:20px;">
+		$pdfData = '<table class="vendor_challan_table">
+		                <tr>
+            		        <td class="text-center" colspan="3">
+            		            For movement of goods under section 143 read with rule 55 of the cgst,2017 for jobwork from one factory for processing/operation and subsequent return to the parent factory.
+            		        </td>
+            		    </tr>
 						<tr>
 							<td style="width:50%;vertical-align:top;">
 								<b>Name & Address of the Supplier/Manufacturer</b><br><br>
@@ -292,11 +311,11 @@ class OutChallan extends MY_Controller{
 						<tr>
 							<td class="text-left" style="width:40%;vertical-align:top;">
 								<b>2. Identification marks & number if any: <br></b>
-								<b>Part Code: </b>'.$challanData->item_code.'<br/>
-								<b>Lot No./Date: </b>'.$duheeBatch.'<br/>
+								<b>Part Code: </b>'.$challanData->part_no.'<br/>
+								<b>Lot No./Date: </b>'.$lot_no.'<br/>
 								<b>Grade: </b>'.$challanData->material_grade.'<br/>
-								<b>Heat No.:</b>'.$challanData->batch_no.'<br/>
-								<b>Bar Dia:</b><br/>
+								<b>Heat No.:</b>'.$heat_no.'<br/>
+								<b>Bar Dia:</b>'.$rm_name.'<br/>
 							</td>
 							<th class="text-center" style="width:40%;vertical-align:top;">
 								To be filled by the processing unit in Original duplicate challans
@@ -365,10 +384,10 @@ class OutChallan extends MY_Controller{
 						</tr>
 						<tr>
 							<td class="text-left" style="vertical-align:top;">
-								9. Expected duration of Processing/Manufacturing <br><br><br>
+								9. Expected duration of Processing/Manufacturing : 1 Year<br><br><br><br><br><br>
 							</td>
-							<th class="text-left" style="vertical-align:top;" colspan="2">
-								Name & Address of the processor: <br><br><br>
+							<th class="text-left" style="vertical-align:top;" colspan="2" height="85">
+								Name & Address of the processor: <br><br><br><br><br><br>
 							</th>
 						</tr>
 						<tr>
@@ -390,6 +409,11 @@ class OutChallan extends MY_Controller{
 								</table>
 							</td>
 						</tr>
+            			<tr>
+            			    <td colspan="3">
+            			        Remarks : In light of provision of section 143 of CGST Act,2017,Inputs and/or capital goods send for job work and bringing back after completion of job work is not liable for payment of GST. Hence No ITC to be claimed of GST mentioned in this challan
+            			    </td>
+            			</tr>
 					</table>';
 		$originalCopy = '<div>'.$header.$pdfData.'</div>';
 		
@@ -401,7 +425,7 @@ class OutChallan extends MY_Controller{
 		</table>';
 
 		$pdfData = $originalCopy;
-		print_r($pdfData);exit;
+
 		$mpdf = $this->m_pdf->load();
 		$pdfFileName = 'DC-REG-' . $id . '.pdf';
 		$stylesheet = file_get_contents(base_url('assets/css/pdf_style.css'));

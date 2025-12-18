@@ -57,7 +57,7 @@
                                 
                                 echo '<tr>
                                     <td class="text-center fs-12">
-                                        <input type="checkbox" id="md_checkbox_' . $i . '" name="id[]" class="filled-in chk-col-success challanCheck" data-rowid="' . $i . '" value="' . $row->id . '"  ><label for="md_checkbox_' . $i . '" class="mr-3"></label>
+                                        <input type="checkbox" id="md_checkbox_' . $i . '" name="id['.$i.']" class="filled-in chk-col-success challanCheck" data-rowid="' . $i . '" value="' . $row->id . '"  ><label for="md_checkbox_' . $i . '" class="mr-3"></label>
                                     </td>
                                     <td class="text-center fs-12">' . $row->job_number . '</td>
                                     <td class="text-cente fs-12">' . formatDate($row->job_date) . '</td>
@@ -67,12 +67,13 @@
                                     <td class="text-center fs-12">' . $row->pending_qty . '</td>
                                     <td class="text-center fs-12">
                                         <input type="hidden" id="out_qty' . $i . '" value="' . floatVal($row->pending_qty) . '">                   
-                                        <input type="text" id="ch_qty' . $i . '" name="ch_qty[]" data-rowid="' . $i . '" class="form-control challanQty floatOnly" value="0" disabled>
-                                        <input type="hidden" id="mfg_by' . $i . '" name="mfg_by[]" value="'.$row->mfg_by.'" data-rowid="' . $i . '"  disabled>
+                                        <input type="text" id="ch_qty' . $i . '" name="ch_qty['.$i.']" data-rowid="' . $i . '" class="form-control challanQty floatOnly" value="0" disabled>
+                                        <input type="hidden" id="mfg_by' . $i . '" name="mfg_by['.$i.']" value="'.$row->mfg_by.'" data-rowid="' . $i . '"  disabled>
                                         <div class="error chQty' . $row->id . '"></div>
                                     </td>
     								<td class="text-center fs-12">
-    									<input type="text" id="price' . $i . '" name="price[]" value="' . $row->price . '" class="form-control floatOnly" disabled>
+    									<input type="text" id="price' . $i . '" name="price['.$i.']" value="' . $row->price . '" class="form-control floatOnly" disabled>
+    									<div class="error chPrice' . $row->id . '"></div>
     								</td>
     								<td class="text-center fs-12">
     									<select name="gst_per['.$i.']" id="gst_per'.$i.'" class="form-control" disabled>';
@@ -80,6 +81,7 @@
     											echo '<option value="'.$rowData['rate'].'">'.$rowData['val'].'</option>';
     										endforeach;
     								echo '</select>	
+    								        <div class="error chGst' . $row->id . '"></div>
     									</td>
     								</tr>';
                                 $i++;

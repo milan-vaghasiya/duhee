@@ -38,8 +38,7 @@
         <!-- ============================================================== -->
         <!-- Login box.scss -->
         <!-- ============================================================== -->
-        <!--<div class="auth-wrapper d-flex no-block justify-content-center align-items-center" style="background:url(<?=base_url()?>assets/images/background/login_bg1.png) no-repeat center center;background-size:100% 100%;">-->
-        <div class="auth-wrapper d-flex no-block justify-content-start align-items-start" style="background:url(https://nativebittechnologies.in/engimach_login_bg.jpg) no-repeat left center;background-size:78% 100%;">
+        <div class="auth-wrapper d-flex no-block justify-content-center align-items-center" style="background:url(<?=base_url()?>assets/images/background/login_bg1.png) no-repeat center center;background-size:100% 100%;">
             <div class="auth-box on-sidebar">
                 <div id="loginform">
                     <div class="logo">

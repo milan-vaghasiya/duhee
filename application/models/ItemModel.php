@@ -980,5 +980,15 @@ class ItemModel extends MasterModel{
         $data['where']['item_id'] = $data['item_id'];
         return $this->row($data);
 	}
+	
+	public function getItemDetail($postData){
+	    $data['tableName'] = $this->itemMaster;
+	   
+
+		if(!empty($postData['id'])){
+			$data['where_in']['item_master.id'] = $postData['id'];
+		}
+		return $this->rows($data);
+	}
 }
 ?>

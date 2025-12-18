@@ -195,6 +195,65 @@ class QualityReport extends MY_Controller
         $this->load->view($this->monthly_rejection,$this->data);
 	}
 
+    public function getMonthlyRejectionOld(){
+		$data = $this->input->post();
+		$errorMessage = array();
+		if($data['to_date'] < $data['from_date'])
+			$errorMessage['toDate'] = "Invalid date.";
+
+		if(!empty($errorMessage)):
+			$this->printJson(['status'=>0,'message'=>$errorMessage]);
+		else:
+ 			$rejectionData = $this->qualityReports->getMonthlyRejection($data);
+			$thead = ''; $tbody = ''; $tfoot = ''; $i = 1; $prodPer = 0; $rejPer = 0; $totalQty = 0; $totalRejQty = 0;
+			
+			$thead .= '<tr class="text-center">
+				<th colspan="7">Monthly Rejection Report</th>
+			</tr>
+			<tr>
+				<th style="min-width:50px;">#</th>
+				<th style="min-width:100px;">product</th>';
+			if($data['type'] == 0){
+				$thead .='<th style="min-width:80px;">Operator</th>';
+			}else{
+				$thead .='<th style="min-width:80px;">Machine</th>';
+			}
+			$thead .='<th style="min-width:100px;">Prod. Qty</th>
+				<th style="min-width:150px;">Rej. Qty</th>
+				<th style="min-width:50px;">Production Performance</th>
+				<th style="min-width:50px;">Rej. Ratio</th>
+			</tr>';
+			
+			if (!empty($rejectionData)) :
+			 	foreach ($rejectionData as $row) :
+					if($row->rejection_qty != 0):
+						$productionQty = ($row->rejection_qty + $row->prod_qty + $row->rework_qty + $row->hold_qty);
+						$rejPer = ($row->prod_qty != 0 && $row->rejection_qty != 0) ? (($row->rejection_qty * 100) / $productionQty) : 0;
+						$prodPer = (100 - $rejPer);
+						$tbody .= '<tr>
+							<td>' . $i++ . '</td>
+							<td>' . (!empty($row->item_code) ? '['.$row->item_code.'] '.$row->item_name : $row->item_name) . '</td>';
+						if($data['type'] == 0){
+							$tbody .= '<td>' . (!empty($row->emp_code) ? '['.$row->emp_code.'] '.$row->emp_name : $row->emp_name) . '</td>';
+						}else{							
+							$tbody .= '<td>' . (!empty($row->machine_code) ? '['.$row->machine_code.'] '.$row->machine_name : $row->machine_name) . '</td>';
+						}
+						$tbody .= '<td> '. $productionQty .' </td>
+							<td> '. $row->rejection_qty .' </td>
+							<td> '. round($prodPer,2) .'% </td>
+							<td> '. round($rejPer,2) .'% </td>';
+						$tbody.='</tr>';
+						$totalQty += $productionQty;
+						$totalRejQty += $row->rejection_qty;
+					endif;
+			 	endforeach;
+			endif;
+			$tfoot = '<tr><th colspan="3" class="text-right">Total</th><th>'.sprintf("%.2f", $totalQty).'</th><th>'.sprintf("%.2f", $totalRejQty).'</th><th></th><<th></th>/tr>';
+			 
+			$this->printJson(['status' => 1, 'thead' => $thead, 'tbody' => $tbody, 'tfoot' => $tfoot]);
+		endif;
+	}
+	
 	public function getMonthlyRejection(){
 		$data = $this->input->post();
 		$errorMessage = array();
@@ -235,11 +294,11 @@ class QualityReport extends MY_Controller
 						$prodPer = (100 - $rejPer);
 						$tbody .= '<tr>
 							<td>' . $i++ . '</td>
-							<td>' . $row->product_id.(!empty($row->item_code) ? '['.$row->item_code.'] '.$row->item_name : $row->item_name) . '</td>';
+							<td>' .(!empty($row->item_code) ? '['.$row->item_code.'] '.$row->item_name : $row->item_name) . '</td>';
 						if($data['type'] == 0){
 							$tbody .= '<td>' . (!empty($row->emp_code) ? '['.$row->emp_code.'] '.$row->emp_name : $row->emp_name) . '</td>';
 						}else{							
-							$tbody .= '<td>'.$row->machine_id . (!empty($row->machine_code) ? '['.$row->machine_code.'] '.$row->machine_name : $row->machine_name) . '</td>';
+							$tbody .= '<td>' . (!empty($row->machine_code) ? '['.$row->machine_code.'] '.$row->machine_name : $row->machine_name) . '</td>';
 						}
 						$tbody .= '<td> '. $productionQty .' </td>
 							<td> '. $row->rejection_qty .' </td>

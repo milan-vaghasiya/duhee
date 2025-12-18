@@ -612,5 +612,14 @@ class PackingModel extends MasterModel{
         $result = $this->rows($queryData);
         return $result;
     }
+    
+    
+    public function getPackingIds($postData){
+        $queryData['tableName'] = 'packing_master';
+        $queryData['select'] = 'GROUP_CONCAT(packing_master.id) As pack_ids';
+        $queryData['where_in']['packing_master.trans_number'] = $postData['trans_number'];
+        $result = $this->row($queryData);
+        return $result;
+    }
 }
 ?>

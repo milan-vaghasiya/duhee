@@ -709,7 +709,56 @@ class ProductionReport extends MY_Controller
 		$this->load->view($this->rejection_monitoring,$this->data);
 	}
 
-    public function getRejectionMonitoring(){
+    public function getRejectionMonitoringold(){
+		$data = $this->input->post(); 
+		$errorMessage = array();
+		if($data['to_date'] < $data['from_date'])
+			$errorMessage['toDate'] = "Invalid date.";
+
+		if(!empty($errorMessage)):
+			$this->printJson(['status'=>0,'message'=>$errorMessage]);
+		else:
+			$data['rtype'] = 2;
+ 			$rejectionData = $this->productionReports->getRejectionMonitoring($data);
+			 $tbody = ''; $tfoot = '';
+			 if (!empty($rejectionData)) :
+			 	$i = 1;
+			 	$totalRejectCost = 0;$totalRejectQty = 0;
+			 	foreach ($rejectionData as $row) :
+						$totalRejectQty +=$row->qty;
+                        $machine_code = (!empty($row->machine_code)) ? '['.$row->machine_code.'] '.$row->machine_name : $row->machine_name;
+
+			 			$tbody .= '<tr>
+			                 <td>' . $i++ . '</td>
+			                 <td>' . formatDate($row->entry_date) . '</td>
+			                 <td>' . $row->item_code . '</td>
+			                 <td>' . $row->process_name . '</td>
+			                 <td>' . $row->shift_name . '</td>
+			                 <td>' . $machine_code . '</td>
+			                 <td>' . $row->emp_name . '</td>';
+			 			
+			 			$tbody .= '<td>' . $row->qty . '</td>
+			                 <td>' . $row->rejection_reason . '</td>
+			                 <td>' . $row->rej_remark . '</td>
+			                 <td>' . $row->rejection_stage . '</td>
+			 				 <td>' . (!empty($row->vendor_name) ? $row->vendor_name : 'IN HOUSE') . '</td>
+			 			</tr>';
+			 		
+			 	endforeach;
+	 
+			$tfoot .= '<tr class="thead-info">
+				 <th colspan="7" class="text-right">Total Reject Qty.</th>
+				 <th>' . $totalRejectQty . '</th>
+			 	<th colspan="4" class="text-right"></th>
+			 	</tr>';
+			endif;
+			 
+			$this->printJson(['status' => 1, 'tbody' => $tbody, 'tfoot' => $tfoot]);
+		endif;
+	}
+	
+	
+	public function getRejectionMonitoring(){
 		$data = $this->input->post(); 
 		$errorMessage = array();
 		if($data['to_date'] < $data['from_date'])

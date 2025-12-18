@@ -560,7 +560,38 @@ class ProductionReportModel extends MasterModel
 		return $result;
     }
     
-    public function getRejectionMonitoring($data){
+    public function getRejectionMonitoringOld($data){
+		$queryData = array();
+        $queryData['tableName'] = "job_transaction";
+        $queryData['select'] = "job_transaction.*,item_master.item_code,item_master.item_name,item_master.price,process_master.process_name,shift_master.shift_name,employee_master.emp_name,mc.item_name as machine_name,mc.item_code as machine_code,rejection_comment.remark as rejection_reason,rrStage.process_name as rejection_stage,rej_rw_management.remark as rej_remark,party_master.party_name as vendor_name";
+
+        $queryData['leftJoin']['rej_rw_management'] = "rej_rw_management.id = job_transaction.rej_rw_manag_id";
+        $queryData['leftJoin']['item_master'] = "item_master.id = job_transaction.product_id";
+        $queryData['leftJoin']['rejection_comment'] = "rejection_comment.id = job_transaction.rr_reason";
+        $queryData['leftJoin']['job_card'] = "job_card.id = job_transaction.job_card_id";
+        $queryData['leftJoin']['trans_main'] = "trans_main.id = job_card.sales_order_id";
+        $queryData['leftJoin']['job_transaction as okt'] = "job_transaction.ref_id = okt.id";
+        $queryData['leftJoin']['process_master'] = "okt.process_id = process_master.id";
+        $queryData['leftJoin']['shift_master'] = "okt.shift_id = shift_master.id";
+        $queryData['leftJoin']['employee_master'] = "okt.operator_id = employee_master.id";
+        $queryData['leftJoin']['item_master as mc'] = "mc.id = okt.machine_id";
+        $queryData['leftJoin']['rejection_comment'] = "rejection_comment.id = job_transaction.rr_reason";
+        $queryData['leftJoin']['process_master as rrStage'] = "job_transaction.rr_stage = rrStage.id";
+        $queryData['leftJoin']['party_master'] = "rejection_comment.id = rej_rw_management.rr_by";
+
+        $queryData['where']['job_transaction.entry_type'] = 1;
+        $queryData['where']['job_transaction.entry_date >= '] = $data['from_date'];
+        $queryData['where']['job_transaction.entry_date <= '] = $data['to_date'];
+	
+		
+		if (!empty($data['item_id'])) {
+			$queryData['where_in']['job_card.product_id'] = $data['item_id'];
+		}
+		
+		return $this->rows($queryData);
+	}
+	
+	public function getRejectionMonitoring($data){
 		$queryData = array();
         $queryData['tableName'] = "job_transaction";
         $queryData['select'] = "job_transaction.*,item_master.item_code,item_master.item_name,item_master.price,process_master.process_name,shift_master.shift_name,employee_master.emp_name,mc.item_name as machine_name,mc.item_code as machine_code,rejection_comment.remark as rejection_reason,rrStage.process_name as rejection_stage,rej_rw_management.remark as rej_remark,party_master.party_name as vendor_name";

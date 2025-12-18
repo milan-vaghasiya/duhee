@@ -99,23 +99,29 @@ class Outsource extends MY_Controller
 
 		if (!isset($data['id']))
 			$errorMessage['orderError'] = "Please Check atleast one order.";
-
-		if (!empty($data['id'][0])) :
-			foreach ($data['id'] as $key => $value) :
-				if (empty($data['ch_qty'][$key]) && empty($data['challan_id'])) :
+			
+		if (!empty($data['id'])) :
+			foreach ($data['id'] as $key => $value):
+				if(empty($data['ch_qty'][$key]) && empty($data['challan_id'])) :
 					$errorMessage['chQty' . $value] = "Qty. is required.";
-				// else:
-				// 	if(!empty($data['challan_id'])):
-				// 		$data['ch_qty'][$key]+=$data['receive_qty'][$key];
-				// 	endif;
 				endif;
+				
+				$data['price'][$key] = floatval($data['price'][$key]);
+				if (empty($data['price'][$key])) :
+			        $errorMessage['chPrice' . $value] = "Price is required.";
+			    endif;
+			    
+			    $data['gst_per'][$key] = floatval($data['gst_per'][$key]);
+			    if(empty($data['gst_per'][$key])) :
+			        $errorMessage['chGst' . $value] = "GST(%) is required.";
+			    endif;
 			endforeach;
 		endif;
 
 		if (!empty($errorMessage)) :
 			$this->printJson(['status' => 0, 'message' => $errorMessage]);
 		else :
-			$data['created_by'] = $this->loginId;
+			$data['created_by'] = $this->loginId; //print_r($data);exit;
 			$this->printJson($this->outsource->save($data));
 		endif;
 	}
@@ -343,6 +349,11 @@ class Outsource extends MY_Controller
 			$total_amount = (!empty($challanPrice) ? ($challanPrice + $igst_price) : 0);
 		}
 		$pdfData = '<table class="vendor_challan_table">
+		    <tr>
+		        <td class="text-center" colspan="3">
+		            For movement of goods under section 143 read with rule 55 of the cgst,2017 for jobwork from one factory for processing/operation and subsequent return to the parent factory.
+		        </td>
+		    </tr>
 			<tr>
 				<td style="width:50%;vertical-align:top;">
 					<b>Name & Address of the Supplier/Manufacturer</b><br><br>
@@ -436,10 +447,10 @@ class Outsource extends MY_Controller
 			</tr>
 			<tr>
 				<td class="text-left" style="vertical-align:top;">
-					9. Expected duration of Processing/Manufacturing <br><br><br>
+					9. Expected duration of Processing/Manufacturing : 1 Year <br><br><br><br><br><br><br><br><br>
 				</td>
 				<th class="text-left" style="vertical-align:top;" colspan="2">
-					Name & Address of the processor: <br><br><br>
+					Name & Address of the processor: <br><br><br><br><br><br><br><br><br>
 				</th>
 			</tr>
 			<tr>
@@ -460,6 +471,11 @@ class Outsource extends MY_Controller
 						</tr>
 					</table>
 				</td>
+			</tr>
+			<tr>
+			    <td colspan="3">
+			        Remarks : In light of provision of section 143 of CGST Act,2017,Inputs and/or capital goods send for job work and bringing back after completion of job work is not liable for payment of GST. Hence No ITC to be claimed of GST mentioned in this challan
+			    </td>
 			</tr>
 		</table>';
 
@@ -489,7 +505,7 @@ class Outsource extends MY_Controller
 		
 		$mpdf->SetHTMLHeader($htmlHeader);
 		$mpdf->SetHTMLFooter($htmlFooter);
-		$mpdf->AddPage('P','','','','',5,5,30,30,5,5,'','','','','','','','','','A4-P');
+		$mpdf->AddPage('P','','','','',5,5,25,5,5,5,'','','','','','','','','','A4-P');
 		$mpdf->WriteHTML($pdfData);
 		$mpdf->Output($pdfFileName,'I');
 	}

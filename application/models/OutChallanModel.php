@@ -6,11 +6,13 @@ class OutChallanModel extends MasterModel{
 	private $stockTrans = "stock_transaction";
 
     public function nextTransNo($entry_type){
+        $data['tableName'] = $this->transMain;
         $data['select'] = "MAX(challan_no) as challan_no";
         $data['where']['challan_type'] = $entry_type;
-        $data['tableName'] = $this->transMain;
+        $data['where']['challan_date >= '] = '2025-12-01';//$this->startYearDate;
+        $data['where']['challan_date <= '] = $this->endYearDate;
 		$trans_no = $this->specificRow($data)->challan_no;
-		$nextTransNo = (!empty($trans_no))?($trans_no + 1):1;        
+		$nextTransNo = (!empty($trans_no))?($trans_no + 1):2111;        
 		return $nextTransNo;
     }    
     
@@ -44,7 +46,7 @@ class OutChallanModel extends MasterModel{
 
     public function challanTransRow($id){
         $queryData['tableName'] = $this->transChild;
-		$queryData['select'] = "in_out_challan_trans.*, item_master.item_name, item_master.item_code, in_out_challan.party_id, item_master.material_grade, item_master.wt_pcs, in_out_challan.challan_prefix, in_out_challan.challan_no,party_master.gstin, process_master.process_name, party_master.party_address, in_out_challan.challan_date";
+		$queryData['select'] = "in_out_challan_trans.*, item_master.item_name, item_master.item_code, in_out_challan.party_id, item_master.material_grade, item_master.wt_pcs,item_master.part_no, in_out_challan.challan_prefix, in_out_challan.challan_no,party_master.party_name, party_master.gstin, process_master.process_name, party_master.party_address, in_out_challan.challan_date";
 		$queryData['leftJoin']['in_out_challan'] = "in_out_challan.id = in_out_challan_trans.in_out_ch_id";
 		$queryData['leftJoin']['item_master'] = "item_master.id = in_out_challan_trans.item_id";
 		$queryData['leftJoin']['party_master'] = "party_master.id = in_out_challan.party_id";
@@ -236,14 +238,7 @@ class OutChallanModel extends MasterModel{
             $this->db->trans_rollback();
         }
     }
-
-    public function getPackingIds($postData){
-        $queryData['tableName'] = 'packing_master';
-        $queryData['select'] = 'GROUP_CONCAT(packing_master.id) As pack_ids';
-        $queryData['where_in']['packing_master.trans_number'] = $postData['trans_number'];
-        $result = $this->row($queryData);
-        return $result;
-    }
+    
     public function getDuheeBatch($postData){
         $queryData['tableName'] = 'stock_transaction';
         $queryData['select'] = '(SELECT job_card_id FROM job_heat_trans WHERE is_delete = 0 AND job_heat_trans.batch_no = stock_transaction.batch_no GROUP BY job_card_id) AS job_card_id';
