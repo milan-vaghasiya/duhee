@@ -46,7 +46,7 @@ class OutChallanModel extends MasterModel{
 
     public function challanTransRow($id){
         $queryData['tableName'] = $this->transChild;
-		$queryData['select'] = "in_out_challan_trans.*, item_master.item_name, item_master.item_code, in_out_challan.party_id, item_master.material_grade, item_master.wt_pcs,item_master.part_no, in_out_challan.challan_prefix, in_out_challan.challan_no,party_master.party_name, party_master.gstin, process_master.process_name, party_master.party_address, in_out_challan.challan_date";
+		$queryData['select'] = "in_out_challan_trans.*, item_master.item_name, item_master.item_code, in_out_challan.party_id, item_master.material_grade, item_master.wt_pcs,item_master.part_no, in_out_challan.challan_prefix, in_out_challan.challan_no,party_master.party_name, party_master.gstin, process_master.process_name, party_master.party_address, in_out_challan.challan_date, in_out_challan.created_at";
 		$queryData['leftJoin']['in_out_challan'] = "in_out_challan.id = in_out_challan_trans.in_out_ch_id";
 		$queryData['leftJoin']['item_master'] = "item_master.id = in_out_challan_trans.item_id";
 		$queryData['leftJoin']['party_master'] = "party_master.id = in_out_challan.party_id";
@@ -67,6 +67,7 @@ class OutChallanModel extends MasterModel{
 
             if(empty($masterData['id'])):
                 $masterData['challan_no'] = $this->nextTransNo(1);
+                $masterData['created_at'] = date("Y-m-d H:i:s");
                 $result = ['status'=>1,'message'=>'Challan Saved Successfully.','url'=>base_url("outChallan")];
             else:
                 $mainId = $masterData['id'];
@@ -88,7 +89,7 @@ class OutChallanModel extends MasterModel{
             $masterDataSave = $this->store($this->transMain,$masterData);
 
             $masterId = (!empty($masterData['id']) ? $masterData['id'] : $masterDataSave['insert_id']);
-            
+
             foreach($itemData['item_id'] as $key=>$value):
 				$batch_qty = explode(",",$itemData['batch_qty'][$key]);
                 $batch_no = explode(",",$itemData['batch_no'][$key]);

@@ -118,13 +118,14 @@ class OutsourceModel extends MasterModel
                 'hsn_code' => $data['hsn_code'],
                 'nature_process' => $data['nature_process'],
                 'remark' => $data['remark'],
-                'created_by' => $data['created_by']
+                'created_by' => $data['created_by'],
+                'created_at' => date("Y-m-d H:i:s")
             ];
 
             $result = $this->store($this->outsourceChallan, $transData, 'Vendor Challan');
             $challan_id = (!empty($data['challan_id']) ? $data['challan_id'] : $result['insert_id']);
 
-
+           
             foreach ($data['id'] as $key => $value) :
                 $movementData = $this->processMovement->getOutwardTransPrint($value);
                 $nextPrsData = $this->processMovement->getProcessWiseApprovalData($movementData->job_card_id, $movementData->out_process_id);
